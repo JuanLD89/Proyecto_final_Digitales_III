@@ -85,3 +85,30 @@ char scanKeypad()
     }
     return '\0'; // Sin tecla presionada
 }
+
+int verificarUsuario(const char *id, const char *clave)
+{
+
+    if (strcmp(baseDeDatos.id, id) == 0 && strcmp(baseDeDatos.clave, clave) == 0)
+    {
+        return 1; // Usuario verificado
+    }
+    // si falla sumar a numero de intentos fallidos
+
+    int NIntentos = 0;
+    int NIntentosNuvo = 1;
+
+    if (strcmp(baseDeDatosIntentos.idIntentos, id) == 0)
+    {
+        NIntentos = baseDeDatosIntentos.Intentos; // Retorna el número de intentos
+    }
+    
+    NIntentosNuvo = NIntentos + 1;
+    if (strcmp(baseDeDatosIntentos.idIntentos, id) == 0)
+    {
+        baseDeDatosIntentos.Intentos = NIntentosNuvo;
+        printf("Se sumo un error.\n");
+        printf("intentos: %d\n", NIntentosNuvo);
+    }
+    return 0; // Verificación fallida
+}
