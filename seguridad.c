@@ -21,12 +21,7 @@ char keys[ROWS][COLS] = {
     {'7', '8', '9', 'C'},
     {'*', '0', '#', 'D'}};
 
-typedef struct
-{
-    char clave[MAX_CLAVE_LENGTH + 1]; ///< Clave del usuario (hasta 4 dígitos).
-} Usuario;
-
-Usuario baseDeDatos = {"1111"};
+char claveActual[MAX_CLAVE_LENGTH + 1] = "1111";
 
 void setup()
 {
@@ -75,9 +70,9 @@ char scanKeypad()
     return '\0'; // Sin tecla presionada
 }
 
-int verificarUsuario(const char *clave)
+int verificarUsuario(const char *clave, const char *claveActual)
 {
-    if (strcmp(baseDeDatos.clave, clave) == 0)
+    if (strcmp(claveActual, clave) == 0)
     {
         return 1; // Usuario verificado
     }
@@ -88,7 +83,7 @@ void encenderLedVerde()
 {
     printf("Acceso concedido.\n");
     gpio_put(LedVerde, 1);
-    sleep_ms(10000);    //10 segundos prendido (tiempo para abrir la compuerta, si no se vuelve a bloquear)
+    sleep_ms(5000);
     gpio_put(LedVerde, 0);
     sleep_ms(500);
 }
@@ -133,7 +128,7 @@ int manejarAutenticacion(char *tempClave)
 
     printf("Clave ingresada: %s\n", tempClave);
 
-    if (verificarUsuario(tempClave))
+    if (verificarUsuario(tempClave, claveActual))
     {
         encenderLedVerde();
         return 1; // Autenticación exitosa
@@ -144,6 +139,66 @@ int manejarAutenticacion(char *tempClave)
         return 0; // Falló la autenticación
     }
 
+}
+
+void cambiarClave(char *claveActual)
+{
+    char nuevaClave[MAX_CLAVE_LENGTH + 1] = {0};
+
+    // Leer la nueva clave usando el teclado matricial
+    printf("Ingrese la nueva clave:\n");
+
+    time_t start = time(NULL);
+    time_t end;
+    int claveComplete = 0;
+    gpio_put(LedVerde, 1);
+    gpio_put(LedRojo, 1);
+    absolute_time_t last_change_time = get_absolute_time();
+    const uint32_t interval = 1000 * 1000; // 1 segundo en microsegundos
+
+    while (1)
+    {
+        if (absolute_time_diff_us(last_change_time, get_absolute_time()) >= interval)
+        {
+            last_change_time = get_absolute_time();
+        }
+        end = time(NULL);
+        if (difftime(end, start) >= 10)
+        { // Tiempo máximo de entrada
+            printf("Tiempo agotado. No se cambió la clave.\n");
+            gpio_put(LedVerde, 0);
+            gpio_put(LedRojo, 0);
+            sleep_ms(100);
+            encenderLedRojo();
+            return;
+        }
+
+        char key = scanKeypad();
+        if (key != '\0')
+        {
+            if (strlen(nuevaClave) < MAX_CLAVE_LENGTH)
+            {
+                strncat(nuevaClave, &key, 1); // Añade un solo carácter a la nueva clave
+                if (strlen(nuevaClave) == MAX_CLAVE_LENGTH)
+                {
+                    claveComplete = 1; // Clave completa
+                }
+            }
+        }
+
+        if (claveComplete)
+        {
+            break; // Salir si se completó la nueva clave
+        }
+    }
+    printf("Nueva clave ingresada: %s\n", nuevaClave); // Mostrar clave parcial
+
+    strcpy(claveActual, nuevaClave);
+    printf("Clave cambiada exitosamente.\n");
+    gpio_put(LedVerde, 0);
+    gpio_put(LedRojo, 0);
+    sleep_ms(100);
+    encenderLedVerde();
 }
 
 int main()
@@ -174,6 +229,18 @@ int main()
                 else
                 {
                     printf("Fallo en la autenticación.\n");
+                }
+            }
+            else if (keyinicial == '#')
+            {
+                if (manejarAutenticacion(tempClave))
+                {
+                    printf("Clvae correcta.\n");
+                    cambiarClave(claveActual);
+                }
+                else
+                {
+                    printf("Clave incorrecta.\n");
                 }
             }
         }
