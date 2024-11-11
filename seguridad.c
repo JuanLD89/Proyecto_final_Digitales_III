@@ -5,7 +5,6 @@
 
 #define ROWS 4
 #define COLS 4
-#define MAX_ID_LENGTH 6
 #define MAX_CLAVE_LENGTH 4
 
 const uint LedRojo = 14;
@@ -24,11 +23,10 @@ char keys[ROWS][COLS] = {
 
 typedef struct
 {
-    char id[MAX_ID_LENGTH + 1];     ///< ID del usuario (hasta 6 dígitos).
     char clave[MAX_CLAVE_LENGTH + 1]; ///< Clave del usuario (hasta 4 dígitos).
 } Usuario;
 
-Usuario baseDeDatos = {"123456", "1111"};
+Usuario baseDeDatos = {"1111"};
 
 void setup()
 {
@@ -77,9 +75,9 @@ char scanKeypad()
     return '\0'; // Sin tecla presionada
 }
 
-int verificarUsuario(const char *id, const char *clave)
+int verificarUsuario(const char *clave)
 {
-    if (strcmp(baseDeDatos.id, id) == 0 && strcmp(baseDeDatos.clave, clave) == 0)
+    if (strcmp(baseDeDatos.clave, clave) == 0)
     {
         return 1; // Usuario verificado
     }
@@ -104,11 +102,10 @@ void encenderLedRojo()
     sleep_ms(500);
 }
 
-int manejarAutenticacion(char *tempId, char *tempClave)
+int manejarAutenticacion(char *tempClave)
 {
 
-    printf("Ingrese su ID y clave:\n");
-    int idComplete = 0;
+    printf("Ingrese la clave:\n");
     int claveComplete = 0;
     absolute_time_t last_change_time = get_absolute_time();
     const uint32_t interval = 1000 * 1000; // 1 segundo en microsegundos
@@ -118,15 +115,7 @@ int manejarAutenticacion(char *tempId, char *tempClave)
         char key = scanKeypad();
         if (key != '\0')
         {
-            if (!idComplete && strlen(tempId) < MAX_ID_LENGTH)
-            {
-                strncat(tempId, &key, 1); // Añade un solo carácter al ID
-                if (strlen(tempId) == MAX_ID_LENGTH)
-                {
-                    idComplete = 1; // ID completo
-                }
-            }
-            else if (idComplete && !claveComplete && strlen(tempClave) < MAX_CLAVE_LENGTH)
+            if (!claveComplete && strlen(tempClave) < MAX_CLAVE_LENGTH)
             {
                 strncat(tempClave, &key, 1); // Añade un solo carácter a la clave
                 if (strlen(tempClave) == MAX_CLAVE_LENGTH)
@@ -135,27 +124,16 @@ int manejarAutenticacion(char *tempId, char *tempClave)
                 }
             }
         }
-        if (idComplete)
-        {
-            if (absolute_time_diff_us(last_change_time, get_absolute_time()) >= interval)
-            {
-                // Actualiza el tiempo del último cambio
-                last_change_time = get_absolute_time();
-            }
-            
-        }
 
-        if (idComplete && claveComplete)
+        if (claveComplete)
         {
             break; // Salir si se completaron ID y clave
         }
     }
 
-    // Mostrar ID y clave ingresados
-    printf("ID ingresado: %s\n", tempId);
     printf("Clave ingresada: %s\n", tempClave);
 
-    if (verificarUsuario(tempId, tempClave))
+    if (verificarUsuario(tempClave))
     {
         encenderLedVerde();
         return 1; // Autenticación exitosa
@@ -181,7 +159,6 @@ int main()
 
     while (true)
     {
-        char tempId[MAX_ID_LENGTH + 1] = {0};
         char tempClave[MAX_CLAVE_LENGTH + 1] = {0};
         char keyinicial = scanKeypad();
 
@@ -190,7 +167,7 @@ int main()
             printf("Tecla presionada: %c\n", keyinicial);
             if (keyinicial == '*')
             {
-                if (manejarAutenticacion(tempId, tempClave))
+                if (manejarAutenticacion(tempClave))
                 {
                     printf("Usuario autenticado.\n");
                 }
