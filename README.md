@@ -2,20 +2,21 @@
 Proyecto de un dispensador de comida inteligente para mascotas con Raspberry Pi Pico. Automatiza la alimentación mediante horarios programables y detección de niveles de comida y agua. Incluye opciones de dispensado manual y teclado para configuración.
 
 -- Nombre del proyecto. 
+
     - Happy pet!!
 
--- Idea de proyecto final -
+-- Idea de proyecto final.
 
-- El proyecto consiste en la creación de un dispensador de comida inteligente para mascotas, utilizando la Raspberry Pi Pico como unidad de control principal.       Este dispositivo tiene como objetivo proporcionar una solución automatizada para la alimentación de mascotas, permitiendo que reciban su comida de manera          regular y en cantidades controladas, incluso cuando los dueños no están presentes.
-    
-- Una característica clave del dispensador es su capacidad para detectar los niveles de comida restantes en el compartimento de almacenamiento. Si se detecta        que el nivel es bajo y coincide con el horario programado para la alimentación, el dispositivo liberará la cantidad necesaria de comida para evitar que se         derrame. De esta manera, se garantiza que la comida se distribuya de manera precisa y controlada.
-    
-- También se pondrá un teclado matricial que controle el bloqueo al compartimento de almacenamiento, configuración de hora de dispensado y de proporciones.
+    - El proyecto consiste en la creación de un dispensador de comida inteligente para mascotas, utilizando la Raspberry Pi Pico como unidad de control principal.       Este dispositivo tiene como objetivo proporcionar una solución automatizada para la alimentación de mascotas, permitiendo que reciban su comida de manera          regular y en cantidades controladas, incluso cuando los dueños no están presentes.
+        
+    - Una característica clave del dispensador es su capacidad para detectar los niveles de comida restantes en el compartimento de almacenamiento. Si se detecta        que el nivel es bajo y coincide con el horario programado para la alimentación, el dispositivo liberará la cantidad necesaria de comida para evitar que se         derrame. De esta manera, se garantiza que la comida se distribuya de manera precisa y controlada.
+        
+    - También se pondrá un teclado matricial que controle el bloqueo al compartimento de almacenamiento, configuración de hora de dispensado y de proporciones.
 
 -- Requisitos funcionales.
 
- - Automatización de la Alimentación:
-      - El sistema permitirá la programación de horarios para la dispensación de comida mediante el teclado matricial.
+     - Automatización de la Alimentación:
+          El sistema permitirá la programación de horarios para la dispensación de comida mediante el teclado matricial.
           Deberá ser capaz de configurar la cantidad de comida a dispensar para cada horario programado.
           
      - Detección de Niveles de Comida:
@@ -35,21 +36,21 @@ Proyecto de un dispensador de comida inteligente para mascotas con Raspberry Pi 
           El sistema mide el nivel de agua disponible en el compartimento de agua mediante un sensor.
           
       - Opción de dispensado manual: 
-          El usuario puede dispensar manualmente la comida, independientemente de la programación automática de horarios. Esto le permitirá al usuario proporcionar          comida adicional a la mascota en caso de ser necesario.
+          El usuario puede dispensar manualmente la comida, independientemente de la programación automática de horarios. Esto le permitirá al usuario                       proporcionar comida adicional a la mascota en caso de ser necesario.
 
 -- Requisitos NO funcionales.
 
- - Rendimiento:
-          Requisito: El sistema debe ser capaz de procesar las órdenes de dispensado de comida (tanto automáticas como manuales) en poco tiempo desde que se recibe la señal hasta que se activa el                                      motor para liberar la comida.
-          Contribución: Esto garantiza que el dispensador reaccione de manera rápida, mejorando la experiencia del usuario al evitar retrasos que podrían causar que la mascota espere demasiado o que                                      el dueño piense que el sistema no está respondiendo.
+     - Rendimiento:
+          Requisito: El sistema debe ser capaz de procesar las órdenes de dispensado de comida (tanto automáticas como manuales) en poco tiempo desde que se                 recibe la señal hasta que se activa el motor para liberar la comida.
+          Contribución: Esto garantiza que el dispensador reaccione de manera rápida, mejorando la experiencia del usuario al evitar retrasos que podrían causar             que la mascota espere demasiado o que el dueño piense que el sistema no está respondiendo.
      
       - Interfaz de Usuario:
-          Requisito: El teclado matricial debe ser fácil de usar y permitir una configuración intuitiva de los horarios de dispensado y del modo de dispensado manual.
-          Contribución: Esto mejora la usabilidad del dispositivo, haciendo que los dueños de mascotas puedan configurar y usar el dispensador de manera sencilla sin necesidad de consultar un                                             manual detallado.
+          Requisito: El teclado matricial debe ser fácil de usar y permitir una configuración intuitiva de los horarios de dispensado y del modo de dispensado                manual.
+          Contribución: Esto mejora la usabilidad del dispositivo, haciendo que los dueños de mascotas puedan configurar y usar el dispensador de manera sencilla            sin necesidad de consultar un manual detallado.
 
 -- Pruebas - Las pruebas seran realizadas simuladas por humanos
 
-  - Prueba de Dispensado Automático
+       - Prueba de Dispensado Automático
             - Objetivo: 
               Verificar que el sistema dispense la cantidad correcta de comida en los horarios configurados.
             - Procedimiento:
@@ -100,7 +101,7 @@ Proyecto de un dispensador de comida inteligente para mascotas con Raspberry Pi 
 
        - Prueba de Seguridad del Compartimento de Almacenamiento
             - Objetivo: 
-              Verificar que el compartimento de almacenamiento de comida esté adecuadamente bloqueado y que solo pueda ser desbloqueado mediante la  secuencia correcta en el teclado matricial.
+              Verificar que el compartimento de almacenamiento de comida esté adecuadamente bloqueado y que solo pueda ser desbloqueado mediante la  secuencia                   correcta en el teclado matricial.
             - Procedimiento:
               Intentar abrir el compartimento sin introducir ninguna secuencia en el teclado.
               Confirmar que el compartimento permanece bloqueado.
@@ -116,10 +117,12 @@ Proyecto de un dispensador de comida inteligente para mascotas con Raspberry Pi 
               La secuencia correcta desbloquea el compartimento.
               El compartimento se bloquea automáticamente después de un tiempo sin actividad.
 
-    -- Las funciones de los integrantes del grupo son:
+ -- Las funciones de los integrantes del grupo son:
     
-     -Duvan Camilo Ramirez Caro: Desarrollo del Software (Configuración y manejo de los tiempos de dispensado de alimentos, ajuste de tiempos de dispensado de alimentos, etc) y apoyo en la integración y configuración del hardware del dispensador.
+     -Duvan Camilo Ramirez Caro: Desarrollo del Software (Configuración y manejo de los tiempos de dispensado de alimentos, ajuste de tiempos de dispensado de            alimentos, etc) y apoyo en la integración y configuración del hardware del dispensador.
         
-    -Juan Esteban Lopez Dominguez: Desarrollo del Software (implementación del sistema de seguridad, Modificación de la configuración de horarios para el dispensado de comida, sistema de censado para monitorear el nivel de comida. etc) y apoyo con la configuración de Hardware
+    -Juan Esteban Lopez Dominguez: Desarrollo del Software (implementación del sistema de seguridad, Modificación de la configuración de horarios para el                dispensado de comida, sistema de censado para monitorear el nivel de comida. etc) y apoyo con la configuración de Hardware
         
     -Jorge Andres Urrea Franco: Diseño y construcción de la estructura física del dispensador de alimentos, configuración de Hardware.
+
+
