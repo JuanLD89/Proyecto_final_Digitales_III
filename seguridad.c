@@ -1,73 +1,122 @@
-#include "pico/stdlib.h"
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include "pico/stdlib.h"
+#include "hardware/gpio.h"
+#include "hardware/timer.h"
 
-#define ROWS 4
-#define COLS 4
+#define DEBOUNCE_DELAY_MS 150 // Tiempo de debounce en milisegundos
 #define MAX_CLAVE_LENGTH 4
 
 const uint LedRojo = 14;
 const uint LedVerde = 15;
 
-int numeroIntentos = 0;
-
-const uint8_t rowPins[ROWS] = {9, 8, 7, 6}; 
-const uint8_t colPins[COLS] = {2, 5, 4, 3}; 
-
-char keys[ROWS][COLS] = {
-    {'1', '2', '3', 'A'},
-    {'4', '5', '6', 'B'},
-    {'7', '8', '9', 'C'},
-    {'*', '0', '#', 'D'}};
+// Pines del teclado
+uint columns[4] = {2, 5, 4, 3};
+uint rows[4] = {9, 8, 7, 6};
 
 char claveActual[MAX_CLAVE_LENGTH + 1] = "1111";
 
-void setup()
-{
-    // Inicializa los pines de las filas como salida
-    for (int i = 0; i < ROWS; i++)
-    {
-        gpio_init(rowPins[i]);
-        gpio_set_dir(rowPins[i], GPIO_OUT);
-        gpio_put(rowPins[i], 1); // Activa la resistencia pull-up
+// Valores de la matriz de teclas
+char keys[16] = {'1', '2', '3', 'A',
+                 '4', '5', '6', 'B',
+                 '7', '8', '9', 'C',
+                 '*', '0', '#', 'D'};
+
+// Variables internas para almacenamiento
+uint _columns[4];
+uint _rows[4];
+char _matrix_values[16];
+uint all_columns_mask = 0x0;
+uint column_mask[4];
+absolute_time_t last_press_time; // Para el control de debounce
+
+// Variable global para almacenar la tecla presionada
+char key_pressed = '\0';
+
+// Inicializa el teclado matricial
+void pico_keypad_init(uint columns[4], uint rows[4], char matrix_values[16]) {
+    for (int i = 0; i < 16; i++) {
+        _matrix_values[i] = matrix_values[i];
     }
 
-    // Inicializa los pines de las columnas como entrada
-    for (int i = 0; i < COLS; i++)
-    {
-        gpio_init(colPins[i]);
-        gpio_set_dir(colPins[i], GPIO_IN);
-        gpio_pull_up(colPins[i]); // Activa la resistencia pull-up
+    for (int i = 0; i < 4; i++) {
+        _columns[i] = columns[i];
+        _rows[i] = rows[i];
+
+        gpio_init(_columns[i]);
+        gpio_init(_rows[i]);
+
+        gpio_set_dir(_columns[i], GPIO_IN);
+        gpio_set_dir(_rows[i], GPIO_OUT);
+
+        gpio_pull_down(_columns[i]);
+        gpio_put(_rows[i], 1);
+
+        all_columns_mask |= (1 << _columns[i]);
+        column_mask[i] = 1 << _columns[i];
     }
 }
 
-char scanKeypad()
-{
-    for (int row = 0; row < ROWS; row++)
-    {
-        // Activa la fila actual
-        gpio_put(rowPins[row], 0); // Baja a bajo
-        for (int col = 0; col < COLS; col++)
-        {
-            // Lee la columna
-            if (gpio_get(colPins[col]) == 0)
-            {
-                // Espera a que se suelte la tecla
-                sleep_ms(50);
-                if (gpio_get(colPins[col]) == 0)
-                { // Verifica si sigue presionado
-                    // Espera a que se suelte la tecla
-                    while (gpio_get(colPins[col]) == 0)
-                        ;
-                    gpio_put(rowPins[row], 1); // Restaura la fila
-                    return keys[row][col];     // Retorna la tecla presionada
-                }
-            }
-        }
-        gpio_put(rowPins[row], 1); // Restaura la fila
+// Escanea el teclado y devuelve la tecla presionada
+char pico_keypad_get_key(void) {
+    uint32_t cols;
+    int row;
+
+    cols = gpio_get_all() & all_columns_mask;
+    if (cols == 0x0) {
+        return 0;
     }
-    return '\0'; // Sin tecla presionada
+
+    for (int j = 0; j < 4; j++) {
+        gpio_put(_rows[j], 0);
+    }
+
+    for (row = 0; row < 4; row++) {
+        gpio_put(_rows[row], 1);
+        busy_wait_us(10000); // Evita rebotes
+        cols = gpio_get_all() & all_columns_mask;
+        gpio_put(_rows[row], 0);
+
+        if (cols != 0x0) {
+            break;
+        }
+    }
+
+    for (int i = 0; i < 4; i++) {
+        gpio_put(_rows[i], 1);
+    }
+
+    for (int i = 0; i < 4; i++) {
+        if (cols == column_mask[i]) {
+            return _matrix_values[row * 4 + i];
+        }
+    }
+
+    return 0;
+}
+
+// Configura interrupciones para el teclado
+void pico_keypad_irq_enable(bool enable, gpio_irq_callback_t callback) {
+    for (int i = 0; i < 4; i++) {
+        gpio_set_irq_enabled_with_callback(_columns[i], GPIO_IRQ_EDGE_RISE, enable, callback);
+    }
+}
+
+// Función de callback de interrupción con debounce
+void key_pressed_callback(uint gpio, uint32_t events) {
+    absolute_time_t current_time = get_absolute_time();
+    if (absolute_time_diff_us(last_press_time, current_time) < DEBOUNCE_DELAY_MS * 1000) {
+        return; // Ignorar si el tiempo de debounce no ha pasado
+    }
+
+    last_press_time = current_time; // Actualizar tiempo de la última pulsación
+
+    char key = pico_keypad_get_key();
+    if (key) {
+        key_pressed = key; // Asignar la tecla presionada a la variable global
+        printf("Presionaste: %c\n", key);
+    }
 }
 
 int verificarUsuario(const char *clave, const char *claveActual)
@@ -107,12 +156,13 @@ int manejarAutenticacion(char *tempClave)
     while (1)
     {
 
-        char key = scanKeypad();
+        char key = key_pressed;
         if (key != '\0')
         {
             if (!claveComplete && strlen(tempClave) < MAX_CLAVE_LENGTH)
             {
                 strncat(tempClave, &key, 1); // Añade un solo carácter a la clave
+                key_pressed = '\0';
                 if (strlen(tempClave) == MAX_CLAVE_LENGTH)
                 {
                     claveComplete = 1; // Clave completa
@@ -122,7 +172,7 @@ int manejarAutenticacion(char *tempClave)
 
         if (claveComplete)
         {
-            break; // Salir si se completaron ID y clave
+            break; // Salir si se completo la clave
         }
     }
 
@@ -173,12 +223,13 @@ void cambiarClave(char *claveActual)
             return;
         }
 
-        char key = scanKeypad();
+        char key = key_pressed;
         if (key != '\0')
         {
             if (strlen(nuevaClave) < MAX_CLAVE_LENGTH)
             {
                 strncat(nuevaClave, &key, 1); // Añade un solo carácter a la nueva clave
+                key_pressed = '\0';
                 if (strlen(nuevaClave) == MAX_CLAVE_LENGTH)
                 {
                     claveComplete = 1; // Clave completa
@@ -201,10 +252,11 @@ void cambiarClave(char *claveActual)
     encenderLedVerde();
 }
 
-int main()
-{
+int main() {
     stdio_init_all();
-    setup();
+    last_press_time = get_absolute_time(); // Inicializar tiempo de última pulsación
+    pico_keypad_init(columns, rows, keys);
+    pico_keypad_irq_enable(true, key_pressed_callback);
 
     // Configura el pin como salida
     gpio_init(LedRojo);
@@ -212,39 +264,44 @@ int main()
     gpio_init(LedVerde);
     gpio_set_dir(LedVerde, GPIO_OUT);
 
-    while (true)
-    {
+    while (1) {
         char tempClave[MAX_CLAVE_LENGTH + 1] = {0};
-        char keyinicial = scanKeypad();
-
-        if (keyinicial != '\0')
-        {
-            printf("Tecla presionada: %c\n", keyinicial);
-            if (keyinicial == '*')
+        if (key_pressed != '\0') {
+            if (key_pressed == '*')
             {
-                if (manejarAutenticacion(tempClave))
-                {
-                    printf("Usuario autenticado.\n");
-                }
-                else
-                {
-                    printf("Fallo en la autenticación.\n");
-                }
+                key_pressed = '\0'; // Resetear la variable después de imprimir
+                    if (manejarAutenticacion(tempClave))
+                    {
+                        printf("Usuario autenticado.\n");
+                        key_pressed = '\0'; // Resetear la variable después de imprimir
+                    }
+                    else
+                    {
+                        printf("Fallo en la autenticación.\n");
+                        key_pressed = '\0'; // Resetear la variable después de imprimir
+                    }
             }
-            else if (keyinicial == '#')
+            else if (key_pressed == '#')
             {
+                key_pressed = '\0';
                 if (manejarAutenticacion(tempClave))
                 {
-                    printf("Clvae correcta.\n");
+                    printf("Clave correcta.\n");
                     cambiarClave(claveActual);
+                    key_pressed = '\0';
                 }
                 else
                 {
                     printf("Clave incorrecta.\n");
+                    key_pressed = '\0';
                 }
             }
+            else
+            {
+                key_pressed = '\0';
+            }
         }
-    }
 
-    return 0;
+        sleep_ms(100); // Evitar uso excesivo de CPU
+    }
 }
