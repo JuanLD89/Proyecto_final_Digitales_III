@@ -18,6 +18,12 @@ add_executable(Dispensador_de_comida
     src/intervalos_tiempo.h
     src/configuracion_tiempo_teclado.c
     src/configuracion_tiempo_teclado.h
+    src/mostrar_en_displays.c
+    src/mostrar_en_displays.h
+    src/configuracion_porcion_teclado.c
+    src/configuracion_porcion_teclado.h
+    src/funcionamiento_motor.c
+    src/funcionamiento_motor.h
 )
 
 # pico_stdlib library. You can add more if they are needed
