@@ -6,9 +6,8 @@ volatile bool key_pressed = false; // Bandera para indicar que se presionó una 
 const uint8_t rowPins[ROWS] = {9, 8, 7, 6};
 const uint8_t colPins[COLS] = {2, 5, 4, 3};
 
-// Pines para los LEDs
-const uint LED_VERDE = 14; // LED verde
-const uint LED_ROJO = 15;  // LED rojo
+int horas0 = 0;
+int minutos0 = 0;
 
 // Matriz de teclas
 char keys[ROWS][COLS] = {
@@ -45,15 +44,6 @@ void setup()
         gpio_set_irq_enabled_with_callback(colPins[i], GPIO_IRQ_EDGE_RISE, true, &gpio_callback);
         gpio_set_irq_enabled_with_callback(colPins[i], GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
     }
-
-    // Configuración de los LEDs como salidas
-    gpio_init(LED_VERDE);
-    gpio_set_dir(LED_VERDE, GPIO_OUT);
-    gpio_put(LED_VERDE, 0);
-
-    gpio_init(LED_ROJO);
-    gpio_set_dir(LED_ROJO, GPIO_OUT);
-    gpio_put(LED_ROJO, 0);
 }
 
 // Escanear teclado matricial
@@ -99,6 +89,7 @@ void configurar_hora(char *horas, char *minutos)
             {
                 horas[i++] = key;
                 printf("Horas: %s\n", horas);
+                horas0 = atoi(horas);
                 if (i == 2)
                 {
                     horas[2] = '\0';
@@ -106,15 +97,13 @@ void configurar_hora(char *horas, char *minutos)
                     if (hora >= 0 && hora <= 23)
                     {
                         horacompletada = true;
-                        gpio_put(LED_VERDE, 1); // LED verde encendido
-                        gpio_put(LED_ROJO, 0); // LED rojo apagado
                         printf("Hora válida: %s\n", horas);
                     }
                     else
                     {
-                        gpio_put(LED_VERDE, 0); // LED verde apagado
-                        gpio_put(LED_ROJO, 1); // LED rojo encendido
                         printf("Hora inválida, reiniciando...\n");
+                        horas0 = 0;
+                        memset(horas, 0, sizeof(horas));
                         i = 0;
                     }
                 }
@@ -123,6 +112,7 @@ void configurar_hora(char *horas, char *minutos)
             {
                 minutos[j++] = key;
                 printf("Minutos: %s\n", minutos);
+                minutos0 = atoi(minutos);
                 if (j == 2)
                 {
                     minutos[2] = '\0';
@@ -130,29 +120,23 @@ void configurar_hora(char *horas, char *minutos)
                     if (minuto >= 0 && minuto <= 59)
                     {
                         minutoscompletados = true;
-                        gpio_put(LED_VERDE, 1); // LED verde encendido
-                        gpio_put(LED_ROJO, 0); // LED rojo apagado
                         printf("Minutos válidos: %s\n", minutos);
                     }
                     else
                     {
-                        gpio_put(LED_VERDE, 0); // LED verde apagado
-                        gpio_put(LED_ROJO, 1); // LED rojo encendido
                         printf("Minutos inválidos, reiniciando...\n");
+                        minutos0 = 0;
+                        memset(minutos, 0, sizeof(minutos));
                         j = 0;
                     }
                 }
             }
-
-            if (horacompletada && minutoscompletados)
-            {
-                gpio_put(LED_VERDE, 1); // LED verde encendido
-                gpio_put(LED_ROJO, 0);  // LED rojo apagado
-                sleep_ms(1000);
-                gpio_put(LED_VERDE, 0);
-                gpio_put(LED_ROJO, 0);
-                break;
-            }
+        }
+        
+        show_number(horas0 * 100 + minutos0);
+        if ((horacompletada && minutoscompletados) && key == '#')
+        {
+            break;
         }
     }
 }

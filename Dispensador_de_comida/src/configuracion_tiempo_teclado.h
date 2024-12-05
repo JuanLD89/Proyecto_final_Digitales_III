@@ -5,6 +5,8 @@
 #include "pico/stdlib.h"
 #include "hardware/rtc.h"
 #include <string.h>
+#include "mostrar_en_displays.h"
+#include "configuracion_tiempo_teclado.h"
 
 // Definiciones de pines y constantes
 #define ROWS 4
@@ -12,8 +14,6 @@
 
 extern const uint8_t rowPins[ROWS];
 extern const uint8_t colPins[COLS];
-extern const uint LED_VERDE;
-extern const uint LED_ROJO;
 extern volatile bool key_pressed;
 
 extern char keys[ROWS][COLS];
