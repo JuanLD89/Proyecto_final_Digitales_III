@@ -27,12 +27,12 @@ int main()
     uint slice_num, channel;
     init_servo(&slice_num, &channel);
 
-    bool motor = false;
     bool medir = false;
     bool inicio = true;
+    bool configuracion_alarma = true;
     alarm_interval_hours = 0;    // Configurar horas
-    alarm_interval_minutes = 1;  // Configurar minutos
-    alarm_interval_seconds = 0; // Configurar segundos
+    alarm_interval_minutes = 0;  // Configurar minutos
+    alarm_interval_seconds = 20; // Configurar segundos
 
     printf("Inicio del programa\n");
 
@@ -56,15 +56,19 @@ int main()
             sleep_ms(1000);
         }
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        // Configurar la alarma
-        rtc_set_alarm_in_interval(alarm_interval_hours, alarm_interval_minutes, alarm_interval_seconds);
+        if (configuracion_alarma)
+        {
+            // Configurar la alarma
+            rtc_set_alarm_in_interval(alarm_interval_hours, alarm_interval_minutes, alarm_interval_seconds);
+        }
+        
 
         // Entrar en espera hasta que la alarma se active
         while (!alarm_triggered && !key_pressed)
         {
             __wfi();
         }
+        configuracion_alarma = true;
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         if (alarm_triggered)
@@ -72,17 +76,17 @@ int main()
             // La alarma se activo, realizar accion
             alarm_triggered = false;
             // ejecucion
-            motor = true;
-
-            if (motor)
-            {
-                set_servo_speed(slice_num, channel, 1.0f);   // Máxima velocidad sentido horario
-                sleep_ms(3000);                              // Mantener por 3 segundos
-                set_servo_speed(slice_num, channel, 0.01f); // Detener el servo
-                motor = false;                               // Resetear la variable
-            }
+            set_servo_speed(slice_num, channel, -1.0f);   // Máxima velocidad sentido horario
+            sleep_ms(3000);                              // Mantener por 3 segundos
+            set_servo_speed(slice_num, channel, 0.094f); // Detener el servo
+            sleep_ms(1000);
+            gpio_put(MOTOBOMBA_PIN, 1);
+            sleep_ms(3000);
+            gpio_put(MOTOBOMBA_PIN, 0);
+            sleep_ms(1000);
+            key_pressed = false;
         }
-
+        
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         while (key_pressed)
@@ -107,6 +111,7 @@ int main()
                     alarm_interval_seconds = 0;           // Configurar segundos
                     // Restablecer la bandera
                     key_pressed = false;
+                    configuracion_alarma = true;
                 }
                 //configuracion porcion
                 else if (key == 'B') // Inicia configuración
@@ -115,21 +120,41 @@ int main()
                     configurar_porcion(porcion);
                     printf("Porción válida: %d gramos\n", gramos);
                     key_pressed = false;
+                    configuracion_alarma = true;
                 }
-
+                else if (key == 'C'){
+                    // ejecucion
+                    set_servo_speed(slice_num, channel, 1.0f);   // Máxima velocidad sentido horario
+                    sleep_ms(3000);                              // Mantener por 3 segundos
+                    set_servo_speed(slice_num, channel, 0.05f); // Detener el servo
+                    key_pressed = false;
+                    configuracion_alarma = false;
+                }
                 else if (key == 'D')
+                {
+                    gpio_put(MOTOBOMBA_PIN, 1);
+                    sleep_ms(3000);
+                    gpio_put(MOTOBOMBA_PIN, 0);
+                    sleep_ms(1000);
+                    key_pressed = false;
+                    configuracion_alarma = false;
+                }
+                
+                else if (key == '#')
                 {
                     // Restablecer la bandera
                     key_pressed = false;
+                    configuracion_alarma = false;
                 }
             }
-            if (inicio == true)
+            if (inicio)
             {
                 // Restablecer la bandera
                 key_pressed = false;
                 inicio = false;
                 break;
             }
+            sleep_ms(100);
         }
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////
