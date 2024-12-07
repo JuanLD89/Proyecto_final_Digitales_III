@@ -1,8 +1,8 @@
 #include "mostrar_en_displays.h"
 
 // Pines de los segmentos y transistores
-uint8_t display_pins[] = {21, 28, 13, 12, 11, 20, 10}; // A, B, C, D, E, F, G
-uint8_t transistor_pins[] = {17, 16, 18, 19};          // Transistores para cada display
+uint8_t display_pins[] = {10, 11, 12, 13, 18, 19, 20}; // A, B, C, D, E, F, G
+uint8_t transistor_pins[] = {14, 15, 16, 17};          // Transistores para cada display
 
 // Mapeo de los números 0-9 en segmentos de 7 segmentos
 uint8_t segment_map[] = {

@@ -5,8 +5,8 @@
 #include "pico/stdlib.h"
 
 // Definición de pines
-#define ECHO_PIN 26
-#define TRIGGER_PIN 27
+#define ECHO_PIN 27
+#define TRIGGER_PIN 28
 
 // Declaración de funciones
 void init_pins();

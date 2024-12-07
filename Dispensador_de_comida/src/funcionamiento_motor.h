@@ -6,8 +6,8 @@
 #include "hardware/clocks.h"
 
 // Definición de pines
-#define SERVO_PIN 18 // Cambia al pin GPIO que estés usandoç
-#define MOTOBOMBA_PIN 19 // Cambia al pin GPIO que estés usando
+#define SERVO_PIN 22 
+#define MOTOBOMBA_PIN 26 
 
 
 // Prototipos de funciones
