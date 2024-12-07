@@ -18,6 +18,12 @@ void init_servo(uint *slice_num, uint *channel) {
     uint16_t wrap = (uint16_t)(pwm_clk_freq / 50.0f) - 1; // Wrap para 50 Hz
     pwm_set_wrap(*slice_num, wrap); // Configurar el wrap calculado
     pwm_set_enabled(*slice_num, true); // Habilitar el PWM
+
+
+    // Configuración motobomba
+    gpio_init(MOTOBOMBA_PIN);
+    gpio_set_dir(MOTOBOMBA_PIN, GPIO_OUT);
+    gpio_put(MOTOBOMBA_PIN, 0); // LED apagado inicialmente
 }
 
 // Configurar la velocidad del servo
