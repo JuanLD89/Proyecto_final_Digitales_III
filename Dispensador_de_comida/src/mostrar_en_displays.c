@@ -17,6 +17,13 @@ uint8_t segment_map[] = {
     0b01111111, // 8
     0b01101111  // 9
 };
+// Mapeo de las letras H, O, L, A en segmentos
+uint8_t letter_map[] = {
+    0b01110110, // H
+    0b00111111, // O
+    0b00111000, // L
+    0b01110111  // A
+};
 
 // Inicialización de los pines de salida
 void init_pins2()
@@ -73,5 +80,17 @@ void show_number(int number)
     for (int i = 0; i < 4; i++)
     {
         show_digit(digits[i], i);
+    }
+}
+
+// Mostrar una letra en un display específico
+void show_letter(uint8_t letter, uint8_t display_index) {
+    // Activar los segmentos según el mapeo
+    for (int i = 0; i < 7; i++) {
+        gpio_put(display_pins[i], (letter >> i) & 1);
+    }
+    // Activar el transistor correspondiente al display
+    for (int i = 0; i < 4; i++) {
+        gpio_put(transistor_pins[i], i == display_index ? 1 : 0);
     }
 }
