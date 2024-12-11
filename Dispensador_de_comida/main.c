@@ -4,6 +4,7 @@
 #include "src/mostrar_en_displays.h"
 #include "src/configuracion_porcion_teclado.h"
 #include "src/funcionamiento_motor.h"
+#include "src/sensado_agua.h"
 
 int main()
 {
@@ -11,6 +12,8 @@ int main()
     init_pins();      // Configurar los pines
     init_pins2();
     setup();
+    // Inicializar ADC en GPIO 26 (ADC 0)
+    init_adc(28, 2);
 
     // Inicializar el RTC
     datetime_t t = {
@@ -30,15 +33,45 @@ int main()
     bool medir = false;
     bool inicio = true;
     bool configuracion_alarma = true;
-    alarm_interval_hours = 0;    // Configurar horas
-    alarm_interval_minutes = 0;  // Configurar minutos
-    alarm_interval_seconds = 20; // Configurar segundos
+    int porcion_por_segundo = 30; // gramos
+    alarm_interval_hours = 4;     // Configurar horas
+    alarm_interval_minutes = 0;   // Configurar minutos
+    alarm_interval_seconds = 0;   // Configurar segundos
 
-    printf("Inicio del programa\n");
+    // Captura el tiempo inicial para mostrar hola al inicio
+    absolute_time_t start_time = get_absolute_time();
+    const int duration_seconds = 3; // Duración en segundos
 
     while (true)
     {
         printf("Inicio del programa\n");
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // mostrar hola al inicio
+        if (inicio)
+        {
+            while (1)
+            {
+                // Verifica si el tiempo transcurrido supera la duración
+                if (absolute_time_diff_us(start_time, get_absolute_time()) > duration_seconds * 1000000)
+                {
+                    break; // Sale del bucle después de 3 segundos
+                }
+
+                // Mostrar cada letra en su display correspondiente
+                for (int i = 0; i < 4; i++)
+                {
+                    show_letter(letter_map[i], i);
+                    sleep_ms(2); // Pequeña pausa para multiplexado
+                }
+            }
+
+            // Apaga todos los displays al finalizar
+            for (int i = 0; i < 4; i++)
+            {
+                gpio_put(transistor_pins[i], 0);
+            }
+        }
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         if (configuracion_alarma)
@@ -46,7 +79,6 @@ int main()
             // Configurar la alarma
             rtc_set_alarm_in_interval(alarm_interval_hours, alarm_interval_minutes, alarm_interval_seconds);
         }
-        
 
         // Entrar en espera hasta que la alarma se active
         while (!alarm_triggered && !key_pressed)
@@ -61,17 +93,26 @@ int main()
             // La alarma se activo, realizar accion
             alarm_triggered = false;
             // ejecucion
-            set_servo_speed(slice_num, channel, -1.5f);   // Máxima velocidad sentido horario
-            sleep_ms(3000);                              // Mantener por 3 segundos
+            set_servo_speed(slice_num, channel, -1.5f); // Máxima velocidad sentido horario
+            printf("milisegundos: %d\n", (porcion_por_segundo / 10)* 1000);
+            sleep_ms((porcion_por_segundo / 10) * 1000);
             set_servo_speed(slice_num, channel, 0.15f); // Detener el servo
             sleep_ms(1000);
-            gpio_put(MOTOBOMBA_PIN, 1);
-            sleep_ms(3000);
-            gpio_put(MOTOBOMBA_PIN, 0);
-            sleep_ms(1000);
+
+            float voltage = read_adc_voltage(2);
+            printf("Voltage: %.2f V\n", voltage);
+
+            if (voltage > 1)
+            {
+                gpio_put(MOTOBOMBA_PIN, 1);
+                printf("milisegundos: %d\n", (porcion_por_segundo / 10)* 2000);
+                sleep_ms((porcion_por_segundo / 10) * 2000);
+                gpio_put(MOTOBOMBA_PIN, 0);
+                sleep_ms(1000);
+            }
             key_pressed = false;
         }
-        
+
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         while (key_pressed)
@@ -98,33 +139,51 @@ int main()
                     key_pressed = false;
                     configuracion_alarma = true;
                 }
-                //configuracion porcion
+                // configuracion porcion
                 else if (key == 'B') // Inicia configuración
                 {
                     char porcion[5] = {0}; // Buffer para la porción
                     configurar_porcion(porcion);
                     printf("Porción válida: %d gramos\n", gramos);
+                    if (gramos < 10)
+                    {
+                        porcion_por_segundo = 10;
+                    }
+                    else
+                    {
+                        porcion_por_segundo = gramos;
+                    }
+
                     key_pressed = false;
                     configuracion_alarma = true;
                 }
-                else if (key == 'C'){
+                else if (key == 'C')
+                {
                     // ejecucion
-                    set_servo_speed(slice_num, channel, -1.5f);   // Máxima velocidad sentido horario
-                    sleep_ms(3000);                              // Mantener por 3 segundos
-                    set_servo_speed(slice_num, channel, 0.15f); // Detener el servo
+                    set_servo_speed(slice_num, channel, -1.5f);  // Máxima velocidad sentido horario
+                    printf("milisegundos: %d\n", (porcion_por_segundo / 10)* 1000);
+                    sleep_ms((porcion_por_segundo / 10) * 1000); 
+                    set_servo_speed(slice_num, channel, 0.15f);  // Detener el servo
+                    sleep_ms(1000);
                     key_pressed = false;
                     configuracion_alarma = false;
                 }
                 else if (key == 'D')
                 {
-                    gpio_put(MOTOBOMBA_PIN, 1);
-                    sleep_ms(3000);
-                    gpio_put(MOTOBOMBA_PIN, 0);
-                    sleep_ms(1000);
+                    float voltage = read_adc_voltage(2);
+                    printf("Voltage: %.2f V\n", voltage);
+                    if (voltage > 1)
+                    {
+                        gpio_put(MOTOBOMBA_PIN, 1);
+                        printf("milisegundos: %d\n", (porcion_por_segundo / 10)*2000);
+                        sleep_ms((porcion_por_segundo / 10) * 2000);
+                        gpio_put(MOTOBOMBA_PIN, 0);
+                        sleep_ms(1000);
+                    }
                     key_pressed = false;
                     configuracion_alarma = false;
                 }
-                
+
                 else if (key == '#')
                 {
                     // Restablecer la bandera

@@ -24,10 +24,12 @@ add_executable(Dispensador_de_comida
     src/configuracion_porcion_teclado.h
     src/funcionamiento_motor.c
     src/funcionamiento_motor.h
+    src/sensado_agua.c
+    src/sensado_agua.h
 )
 
 # pico_stdlib library. You can add more if they are needed
-target_link_libraries(Dispensador_de_comida pico_stdlib hardware_pwm hardware_clocks hardware_rtc)
+target_link_libraries(Dispensador_de_comida pico_stdlib hardware_pwm hardware_clocks hardware_rtc hardware_adc)
 
 # Enable usb output, disable uart output
 pico_enable_stdio_usb(Dispensador_de_comida 1)
