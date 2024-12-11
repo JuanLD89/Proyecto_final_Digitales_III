@@ -41,21 +41,6 @@ int main()
         printf("Inicio del programa\n");
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Medir distancia para la comida
-        if (medir == true)
-        {
-            float distancia = medir_distancia();
-            if (distancia > 0 && distancia < 30)
-            {
-                printf("Distancia: %.1f cm\n", distancia);
-            }
-            else
-            {
-                printf("Error en la medición o fuera de rango.\n");
-            }
-            sleep_ms(1000);
-        }
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////
         if (configuracion_alarma)
         {
             // Configurar la alarma
@@ -76,9 +61,9 @@ int main()
             // La alarma se activo, realizar accion
             alarm_triggered = false;
             // ejecucion
-            set_servo_speed(slice_num, channel, -1.0f);   // Máxima velocidad sentido horario
+            set_servo_speed(slice_num, channel, -1.5f);   // Máxima velocidad sentido horario
             sleep_ms(3000);                              // Mantener por 3 segundos
-            set_servo_speed(slice_num, channel, 0.094f); // Detener el servo
+            set_servo_speed(slice_num, channel, 0.15f); // Detener el servo
             sleep_ms(1000);
             gpio_put(MOTOBOMBA_PIN, 1);
             sleep_ms(3000);
@@ -124,9 +109,9 @@ int main()
                 }
                 else if (key == 'C'){
                     // ejecucion
-                    set_servo_speed(slice_num, channel, 1.0f);   // Máxima velocidad sentido horario
+                    set_servo_speed(slice_num, channel, -1.5f);   // Máxima velocidad sentido horario
                     sleep_ms(3000);                              // Mantener por 3 segundos
-                    set_servo_speed(slice_num, channel, 0.05f); // Detener el servo
+                    set_servo_speed(slice_num, channel, 0.15f); // Detener el servo
                     key_pressed = false;
                     configuracion_alarma = false;
                 }
