@@ -17,6 +17,7 @@ uint8_t segment_map[] = {
     0b01111111, // 8
     0b01101111  // 9
 };
+
 // Mapeo de las letras H, O, L, A en segmentos
 uint8_t letter_map[] = {
     0b01110110, // H
@@ -25,22 +26,37 @@ uint8_t letter_map[] = {
     0b01110111  // A
 };
 
-// Inicialización de los pines de salida
+/**
+ * @brief Inicializa los pines de los segmentos y los transistores.
+ * 
+ * Configura los pines correspondientes a los segmentos de los displays de 7 segmentos
+ * y los pines de control de los transistores para el multiplexado de los displays.
+ */
 void init_pins2()
 {
-    for (int i = 0; i < 7; i++) // Inicializar pines de los segmentos
+    // Inicializar pines de los segmentos
+    for (int i = 0; i < 7; i++) 
     {
         gpio_init(display_pins[i]);
         gpio_set_dir(display_pins[i], GPIO_OUT);
     }
-    for (int i = 0; i < 4; i++) // Inicializar pines de los transistores
+    // Inicializar pines de los transistores
+    for (int i = 0; i < 4; i++) 
     {
         gpio_init(transistor_pins[i]);
         gpio_set_dir(transistor_pins[i], GPIO_OUT);
     }
 }
 
-// Mostrar un dígito en un display específico
+/**
+ * @brief Muestra un dígito en un display específico.
+ * 
+ * Esta función configura los pines de los segmentos para mostrar el dígito especificado
+ * en el display correspondiente, y activa el transistor asociado al display.
+ *
+ * @param digit El dígito a mostrar (0-9).
+ * @param display El índice del display (0-3).
+ */
 void show_digit(uint8_t digit, uint8_t display)
 {
     // Apagar todos los transistores para evitar superposición
@@ -66,7 +82,14 @@ void show_digit(uint8_t digit, uint8_t display)
     gpio_put(transistor_pins[display], 0);
 }
 
-// Mostrar un número en los 4 displays
+/**
+ * @brief Muestra un número de 4 dígitos en los displays.
+ * 
+ * La función descompone el número en 4 dígitos y los muestra en los displays de 7 segmentos,
+ * multiplexando los displays rápidamente para hacer que todos sean visibles.
+ *
+ * @param number El número de 4 dígitos a mostrar (0-9999).
+ */
 void show_number(int number)
 {
     uint8_t digits[4] = {
@@ -83,7 +106,15 @@ void show_number(int number)
     }
 }
 
-// Mostrar una letra en un display específico
+/**
+ * @brief Muestra una letra en un display específico.
+ * 
+ * Esta función muestra una letra (H, O, L, A) en un display de 7 segmentos,
+ * activando los segmentos correspondientes de acuerdo con el mapeo de la letra.
+ *
+ * @param letter La letra a mostrar (debe ser una de las letras mapeadas: H, O, L, A).
+ * @param display_index El índice del display (0-3) donde se mostrará la letra.
+ */
 void show_letter(uint8_t letter, uint8_t display_index) {
     // Activar los segmentos según el mapeo
     for (int i = 0; i < 7; i++) {
