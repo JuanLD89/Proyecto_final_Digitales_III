@@ -6,6 +6,15 @@
 #include "src/funcionamiento_motor.h"
 #include "src/sensado_agua.h"
 
+/**
+ * @brief Función principal del programa.
+ * 
+ * Esta función inicializa todos los módulos del sistema y luego entra en un bucle
+ * donde maneja el funcionamiento de un dispensador de comida inteligente. La función
+ * gestiona la configuración del tiempo de la alarma, el control del servo motor,
+ * el control de la bomba de agua, la interacción con el teclado para ajustar la configuración
+ * y la lectura del voltaje de un sensor de agua.
+ */
 int main()
 {
     stdio_init_all(); // Inicializar la consola
@@ -38,7 +47,7 @@ int main()
     alarm_interval_minutes = 0;   // Configurar minutos
     alarm_interval_seconds = 0;   // Configurar segundos
 
-    // Captura el tiempo inicial para mostrar hola al inicio
+    // Captura el tiempo inicial para mostrar "hola" al inicio
     absolute_time_t start_time = get_absolute_time();
     const int duration_seconds = 3; // Duración en segundos
 
@@ -47,7 +56,7 @@ int main()
         printf("Inicio del programa\n");
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // mostrar hola al inicio
+        // Mostrar "hola" al inicio
         if (inicio)
         {
             while (1)
@@ -80,7 +89,7 @@ int main()
             rtc_set_alarm_in_interval(alarm_interval_hours, alarm_interval_minutes, alarm_interval_seconds);
         }
 
-        // Entrar en espera hasta que la alarma se active
+        // Entrar en espera hasta que la alarma se active o se presione una tecla
         while (!alarm_triggered && !key_pressed)
         {
             __wfi();
@@ -90,11 +99,11 @@ int main()
 
         if (alarm_triggered)
         {
-            // La alarma se activo, realizar accion
+            // La alarma se activó, realizar acción
             alarm_triggered = false;
-            // ejecucion
+            // Ejecución
             set_servo_speed(slice_num, channel, -1.5f); // Máxima velocidad sentido horario
-            printf("milisegundos: %d\n", (porcion_por_segundo / 10)* 1000);
+            printf("milisegundos: %d\n", (porcion_por_segundo / 10) * 1000);
             sleep_ms((porcion_por_segundo / 10) * 1000);
             set_servo_speed(slice_num, channel, 0.15f); // Detener el servo
             sleep_ms(1000);
@@ -105,7 +114,7 @@ int main()
             if (voltage > 1)
             {
                 gpio_put(MOTOBOMBA_PIN, 1);
-                printf("milisegundos: %d\n", (porcion_por_segundo / 10)* 2000);
+                printf("milisegundos: %d\n", (porcion_por_segundo / 10) * 2000);
                 sleep_ms((porcion_por_segundo / 10) * 2000);
                 gpio_put(MOTOBOMBA_PIN, 0);
                 sleep_ms(1000);
@@ -123,7 +132,7 @@ int main()
             {
                 printf("Tecla presionada: %c\n", key);
 
-                // configurar hora
+                // Configurar hora
                 if (key == 'A') // Inicia configuración
                 {
                     char horas[3] = {0};   // Buffer para horas
@@ -139,7 +148,7 @@ int main()
                     key_pressed = false;
                     configuracion_alarma = true;
                 }
-                // configuracion porcion
+                // Configuración porción
                 else if (key == 'B') // Inicia configuración
                 {
                     char porcion[5] = {0}; // Buffer para la porción
@@ -159,10 +168,10 @@ int main()
                 }
                 else if (key == 'C')
                 {
-                    // ejecucion
+                    // Ejecución
                     set_servo_speed(slice_num, channel, -1.5f);  // Máxima velocidad sentido horario
-                    printf("milisegundos: %d\n", (porcion_por_segundo / 10)* 1000);
-                    sleep_ms((porcion_por_segundo / 10) * 1000); 
+                    printf("milisegundos: %d\n", (porcion_por_segundo / 10) * 1000);
+                    sleep_ms((porcion_por_segundo / 10) * 1000);
                     set_servo_speed(slice_num, channel, 0.15f);  // Detener el servo
                     sleep_ms(1000);
                     key_pressed = false;
@@ -175,7 +184,7 @@ int main()
                     if (voltage > 1)
                     {
                         gpio_put(MOTOBOMBA_PIN, 1);
-                        printf("milisegundos: %d\n", (porcion_por_segundo / 10)*2000);
+                        printf("milisegundos: %d\n", (porcion_por_segundo / 10) * 2000);
                         sleep_ms((porcion_por_segundo / 10) * 2000);
                         gpio_put(MOTOBOMBA_PIN, 0);
                         sleep_ms(1000);
