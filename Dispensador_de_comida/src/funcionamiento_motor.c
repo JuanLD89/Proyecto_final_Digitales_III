@@ -1,6 +1,15 @@
 #include "funcionamiento_motor.h"
 
-// Inicialización del servo
+/**
+ * @brief Inicializa el servo motor y la motobomba.
+ *
+ * Configura el pin asociado al servo motor para operar en modo PWM,
+ * ajusta la frecuencia del PWM a 50 Hz y configura el pin de la
+ * motobomba como salida digital.
+ *
+ * @param slice_num Puntero a la variable donde se almacenará el número de slice del PWM.
+ * @param channel Puntero a la variable donde se almacenará el canal del PWM.
+ */
 void init_servo(uint *slice_num, uint *channel) {
     // Configuración de la GPIO para PWM
     gpio_set_function(SERVO_PIN, GPIO_FUNC_PWM);
@@ -19,18 +28,28 @@ void init_servo(uint *slice_num, uint *channel) {
     pwm_set_wrap(*slice_num, wrap); // Configurar el wrap calculado
     pwm_set_enabled(*slice_num, true); // Habilitar el PWM
 
-
-    // Configuración motobomba
+    // Configuración de la motobomba como salida digital
     gpio_init(MOTOBOMBA_PIN);
     gpio_set_dir(MOTOBOMBA_PIN, GPIO_OUT);
     gpio_put(MOTOBOMBA_PIN, 0); // LED apagado inicialmente
 }
 
-// Configurar la velocidad del servo
+/**
+ * @brief Configura la velocidad del servo motor.
+ *
+ * Ajusta el ancho de pulso del PWM para controlar la velocidad y dirección del servo motor.
+ *
+ * @param slice_num Número del slice asociado al pin del servo motor.
+ * @param channel Canal del PWM asociado al pin del servo motor.
+ * @param speed Velocidad deseada del servo motor, en un rango de -1.0 a 1.0:
+ *              - -1.0: Velocidad máxima antihoraria.
+ *              -  0.0: Posición neutral (detenido).
+ *              -  1.0: Velocidad máxima horaria.
+ */
 void set_servo_speed(uint slice_num, uint channel, float speed) {
     // Cálculo del ciclo de trabajo basado en la velocidad
-    const float min_pulse_width_ms = 1.0f; // Velocidad máxima antihorario
-    const float max_pulse_width_ms = 2.0f; // Velocidad máxima horario
+    const float min_pulse_width_ms = 1.0f; // Velocidad máxima antihoraria
+    const float max_pulse_width_ms = 2.0f; // Velocidad máxima horaria
     const float neutral_pulse_width_ms = 1.5f; // Detener
 
     float pulse_width_ms = neutral_pulse_width_ms +

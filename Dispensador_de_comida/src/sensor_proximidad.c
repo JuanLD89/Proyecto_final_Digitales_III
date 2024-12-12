@@ -1,6 +1,15 @@
+/**
+ * @file sensor_proximidad.h
+ * @brief Implementación para medir distancias usando un sensor de proximidad.
+ */
+
 #include "sensor_proximidad.h"
 
-// Configuración de pines
+/**
+ * @brief Configura los pines para el sensor de proximidad.
+ *
+ * Inicializa el pin TRIGGER como salida y el pin ECHO como entrada.
+ */
 void init_pins() {
     gpio_init(TRIGGER_PIN);
     gpio_set_dir(TRIGGER_PIN, GPIO_OUT);
@@ -10,7 +19,14 @@ void init_pins() {
     gpio_set_dir(ECHO_PIN, GPIO_IN);
 }
 
-// Medir el pulso en alto
+/**
+ * @brief Mide la duración de un pulso en alto en un pin GPIO.
+ *
+ * Esta función mide el tiempo que el pin especificado permanece en estado alto.
+ *
+ * @param pin Pin GPIO en el que se mide el pulso.
+ * @return Duración del pulso en microsegundos.
+ */
 uint32_t measure_pulse_high(uint pin) {
     uint32_t start_time = 0, end_time = 0;
 
@@ -28,7 +44,15 @@ uint32_t measure_pulse_high(uint pin) {
     return end_time - start_time;
 }
 
-// Función para medir distancia
+/**
+ * @brief Mide la distancia utilizando un sensor.
+ *
+ * Esta función genera un pulso de disparo (trigger) para activar el sensor
+ * y mide la duración del pulso en alto del pin ECHO. Calcula la distancia
+ * en función del tiempo medido.
+ *
+ * @return Distancia medida en centímetros.
+ */
 float medir_distancia() {
     // Generar el pulso de trigger
     gpio_put(TRIGGER_PIN, 0);
